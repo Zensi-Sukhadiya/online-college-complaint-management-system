@@ -1,0 +1,1 @@
+console.log("College Complaint Management System Loaded");

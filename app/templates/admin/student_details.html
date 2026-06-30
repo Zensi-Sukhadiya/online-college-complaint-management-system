@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Student Details{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Student Profile Records</h2>
+            <a href="{{ url_for('main.admin_students') }}" class="btn btn-outline-secondary btn-sm px-3">
+                <i class="bi bi-arrow-left me-1"></i>Back to Records
+            </a>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <span class="fw-bold"><i class="bi bi-person-badge text-primary me-2"></i>Personal Particulars</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <small class="text-muted text-uppercase d-block mb-1">Full Name</small>
+                        <span class="fw-semibold text-dark h5 mb-0">{{ student.name }}</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-muted text-uppercase d-block mb-1">Email Address</small>
+                        <span class="text-dark">{{ student.email }}</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-muted text-uppercase d-block mb-1">Department</small>
+                        <span class="text-dark">{{ student.department }}</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-muted text-uppercase d-block mb-1">Contact Phone</small>
+                        <span class="text-dark">{{ student.contact_number }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Complaint History -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <span class="fw-bold"><i class="bi bi-clock-history text-muted me-2"></i>Academic Complaint
+                    History</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive border-0">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">ID</th>
+                                <th>Category</th>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Date Filed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if complaints %}
+                            {% for complaint in complaints %}
+                            <tr>
+                                <td class="fw-bold text-muted">#{{ complaint.id }}</td>
+                                <td>
+                                    <span class="badge bg-secondary opacity-75">{{ complaint.category.category_name
+                                        }}</span>
+                                </td>
+                                <td>{{ complaint.title }}</td>
+                                <td>
+                                    {% if complaint.status == "Pending" %}
+                                    <span class="badge bg-warning">Pending</span>
+                                    {% elif complaint.status == "Resolved" %}
+                                    <span class="badge bg-success">Resolved</span>
+                                    {% else %}
+                                    <span class="badge bg-info">In Progress</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted small">{{ complaint.created_at.strftime("%d-%m-%Y") }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    No complaint cases recorded for this student.
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

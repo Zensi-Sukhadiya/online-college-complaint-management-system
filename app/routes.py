@@ -1,0 +1,623 @@
+from flask import render_template, redirect, url_for, flash, request, Blueprint
+from flask_login import login_user, logout_user, login_required, current_user
+from werkzeug.security import check_password_hash, generate_password_hash
+from .forms import RegisterForm, LoginForm, ComplaintForm, CategoryForm
+from .models import User, Category, Complaint
+from . import db
+from sqlalchemy import or_
+
+main = Blueprint("main", __name__)
+
+
+@main.route("/")
+def home():
+    return render_template("index.html")
+
+@main.route("/register", methods=["GET", "POST"])
+def register():
+
+    form = RegisterForm()
+
+    if form.validate_on_submit():
+
+        existing_user = User.query.filter_by(email=form.email.data).first()
+
+        if existing_user:
+            flash("Email already exists!", "danger")
+            return redirect(url_for("main.register"))
+
+        hashed_password = generate_password_hash(form.password.data)
+
+        user = User(
+            name=form.name.data,
+            email=form.email.data,
+            password=hashed_password,
+            department=form.department.data,
+            contact_number=form.contact_number.data,
+            role="student"
+        )
+
+        db.session.add(user)
+        db.session.commit()
+
+        flash("Registration Successful!", "success")
+
+        return redirect(url_for("main.login"))
+
+    flash("Email already exists!", "danger")
+    return render_template("auth/register.html", form=form)
+
+
+@main.route("/login", methods=["GET", "POST"])
+def login():
+
+    if current_user.is_authenticated:
+        return redirect(url_for("main.dashboard"))
+
+    form = LoginForm()
+
+    if form.validate_on_submit():
+
+        user = User.query.filter_by(email=form.email.data).first()
+
+        if user and check_password_hash(user.password, form.password.data):
+
+            login_user(user)
+
+            flash("Login Successful!", "success")
+
+            return redirect(url_for("main.dashboard"))
+
+        flash("Invalid Email or Password!", "danger")
+
+    return render_template("auth/login.html", form=form)
+
+
+@main.route("/dashboard")
+@login_required
+def dashboard():
+
+    total = Complaint.query.filter_by(student_id=current_user.id).count()
+
+    pending = Complaint.query.filter_by(
+        student_id=current_user.id,
+        status="Pending"
+    ).count()
+
+    progress = Complaint.query.filter_by(
+        student_id=current_user.id,
+        status="In Progress"
+    ).count()
+
+    resolved = Complaint.query.filter_by(
+        student_id=current_user.id,
+        status="Resolved"
+    ).count()
+
+    complaints = Complaint.query.filter_by(
+        student_id=current_user.id
+    ).order_by(
+        Complaint.created_at.desc()
+    ).limit(5).all()
+
+    return render_template(
+        "dashboard.html",
+        total=total,
+        pending=pending,
+        progress=progress,
+        resolved=resolved,
+        complaints=complaints
+    )
+
+
+@main.route("/complaint/add", methods=["GET", "POST"])
+@login_required
+def add_complaint():
+
+    form = ComplaintForm()
+
+    # Load categories into dropdown
+    form.category.choices = [
+        (category.id, category.category_name)
+        for category in Category.query.order_by(Category.category_name).all()
+    ]
+
+    if form.validate_on_submit():
+
+        complaint = Complaint(
+            student_id=current_user.id,
+            category_id=form.category.data,
+            title=form.title.data,
+            description=form.description.data,
+            status="Pending"
+        )
+
+        db.session.add(complaint)
+        db.session.commit()
+
+        flash("Complaint submitted successfully!", "success")
+
+        return redirect(url_for("main.dashboard"))
+
+    return render_template("complaint/add_complaint.html", form=form)
+
+
+@main.route("/complaints")
+@login_required
+def my_complaints():
+
+    complaints = Complaint.query.filter_by(
+        student_id=current_user.id
+    ).order_by(Complaint.created_at.desc()).all()
+
+    return render_template(
+        "complaint/my_complaints.html",
+        complaints=complaints
+    )
+
+
+@main.route("/complaint/<int:complaint_id>")
+@login_required
+def view_complaint(complaint_id):
+
+    complaint = Complaint.query.get_or_404(complaint_id)
+
+    if complaint.student_id != current_user.id:
+        flash("You are not authorized to view this complaint.", "danger")
+        return redirect(url_for("main.my_complaints"))
+
+    return render_template(
+        "complaint/view_complaint.html",
+        complaint=complaint
+    )
+
+
+@main.route("/complaint/edit/<int:complaint_id>", methods=["GET", "POST"])
+@login_required
+def edit_complaint(complaint_id):
+
+    complaint = Complaint.query.get_or_404(complaint_id)
+
+    # Check ownership
+    if complaint.student_id != current_user.id:
+        flash("You are not authorized to edit this complaint.", "danger")
+        return redirect(url_for("main.my_complaints"))
+
+    # Only pending complaints can be edited
+    if complaint.status != "Pending":
+        flash("Only pending complaints can be edited.", "warning")
+        return redirect(url_for("main.my_complaints"))
+
+    form = ComplaintForm()
+
+    # Load category choices
+    form.category.choices = [
+        (category.id, category.category_name)
+        for category in Category.query.order_by(Category.category_name).all()
+    ]
+
+    if form.validate_on_submit():
+
+        complaint.category_id = form.category.data
+        complaint.title = form.title.data
+        complaint.description = form.description.data
+
+        db.session.commit()
+
+        flash("Complaint updated successfully!", "success")
+
+        return redirect(url_for("main.my_complaints"))
+
+    # Populate form with existing values
+    form.category.data = complaint.category_id
+    form.title.data = complaint.title
+    form.description.data = complaint.description
+
+    return render_template(
+        "complaint/edit_complaint.html",
+        form=form
+    )
+
+
+@main.route("/complaint/delete/<int:complaint_id>")
+@login_required
+def delete_complaint(complaint_id):
+
+    complaint = Complaint.query.get_or_404(complaint_id)
+
+    # Check ownership
+    if complaint.student_id != current_user.id:
+        flash("You are not authorized to delete this complaint.", "danger")
+        return redirect(url_for("main.my_complaints"))
+
+    # Allow deletion only if pending
+    if complaint.status != "Pending":
+        flash("Only pending complaints can be deleted.", "warning")
+        return redirect(url_for("main.my_complaints"))
+
+    db.session.delete(complaint)
+    db.session.commit()
+
+    flash("Complaint deleted successfully!", "success")
+
+    return redirect(url_for("main.my_complaints"))
+
+# Admin Routes
+
+@main.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+
+    if current_user.is_authenticated:
+
+        if current_user.role == "admin":
+            return redirect(url_for("main.admin_dashboard"))
+
+        return redirect(url_for("main.dashboard"))
+
+    form = LoginForm()
+
+    if form.validate_on_submit():
+
+        user = User.query.filter_by(email=form.email.data).first()
+
+        if (
+            user
+            and user.role == "admin"
+            and check_password_hash(user.password, form.password.data)
+        ):
+
+            login_user(user)
+
+            flash("Welcome Admin!", "success")
+
+            return redirect(url_for("main.admin_dashboard"))
+
+        flash("Invalid admin credentials!", "danger")
+
+    return render_template("admin/admin_login.html", form=form)
+
+
+@main.route("/admin/dashboard")
+@login_required
+def admin_dashboard():
+
+    if current_user.role != "admin":
+
+        flash("Access Denied!", "danger")
+
+        return redirect(url_for("main.dashboard"))
+
+    total_students = User.query.filter_by(role="student").count()
+
+    total_categories = Category.query.count()
+
+    total_complaints = Complaint.query.count()
+
+    pending = Complaint.query.filter_by(status="Pending").count()
+
+    progress = Complaint.query.filter_by(status="In Progress").count()
+
+    resolved = Complaint.query.filter_by(status="Resolved").count()
+
+    recent_complaints = Complaint.query.order_by(
+        Complaint.created_at.desc()
+    ).limit(5).all()
+
+    return render_template(
+        "admin/admin_dashboard.html",
+        total_students=total_students,
+        total_categories=total_categories,
+        total_complaints=total_complaints,
+        pending=pending,
+        progress=progress,
+        resolved=resolved,
+        recent_complaints=recent_complaints
+    )
+
+@main.route("/admin/complaints")
+@login_required
+def admin_complaints():
+
+    if current_user.role != "admin":
+        flash("Access Denied!", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    search = request.args.get("search", "")
+    status = request.args.get("status", "")
+
+    complaints = Complaint.query.join(User).join(Category)
+
+    # Search
+    if search:
+        complaints = complaints.filter(
+            or_(
+                User.name.ilike(f"%{search}%"),
+                User.email.ilike(f"%{search}%"),
+                Complaint.title.ilike(f"%{search}%")
+            )
+        )
+
+    # Filter by status
+    if status:
+        complaints = complaints.filter(Complaint.status == status)
+
+    complaints = complaints.order_by(
+        Complaint.created_at.desc()
+    ).all()
+
+    return render_template(
+        "admin/complaints.html",
+        complaints=complaints,
+        search=search,
+        status=status
+    )
+
+@main.route("/admin/complaint/<int:complaint_id>")
+@login_required
+def admin_view_complaint(complaint_id):
+
+    if current_user.role != "admin":
+        flash("Access Denied!", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    complaint = Complaint.query.get_or_404(complaint_id)
+
+    return render_template(
+        "admin/view_complaint.html",
+        complaint=complaint
+    )
+
+@main.route("/admin/complaint/status/<int:complaint_id>", methods=["GET", "POST"])
+@login_required
+def update_status(complaint_id):
+
+    if current_user.role != "admin":
+        flash("Access Denied!", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    complaint = Complaint.query.get_or_404(complaint_id)
+
+    if request.method == "POST":
+
+        complaint.status = request.form.get("status")
+
+        db.session.commit()
+
+        flash("Complaint status updated successfully!", "success")
+
+        return redirect(
+            url_for(
+                "main.admin_view_complaint",
+                complaint_id=complaint.id
+            )
+        )
+
+    return render_template(
+        "admin/update_status.html",
+        complaint=complaint
+    )
+
+@main.route("/admin/students")
+@login_required
+def admin_students():
+
+    if current_user.role != "admin":
+        flash("Access Denied!", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    search = request.args.get("search", "")
+
+    students = User.query.filter(User.role == "student")
+
+    if search:
+
+        students = students.filter(
+            or_(
+                User.name.ilike(f"%{search}%"),
+                User.email.ilike(f"%{search}%"),
+                User.department.ilike(f"%{search}%")
+            )
+        )
+
+    students = students.order_by(User.name.asc()).all()
+
+    return render_template(
+        "admin/students.html",
+        students=students,
+        search=search
+    )
+
+@main.route("/admin/student/<int:student_id>")
+@login_required
+def student_details(student_id):
+
+    if current_user.role != "admin":
+        flash("Access Denied!", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    student = User.query.get_or_404(student_id)
+
+    complaints = Complaint.query.filter_by(
+        student_id=student.id
+    ).order_by(Complaint.created_at.desc()).all()
+
+    return render_template(
+        "admin/student_details.html",
+        student=student,
+        complaints=complaints
+    )
+
+@main.route("/admin/student/delete/<int:student_id>")
+@login_required
+def delete_student(student_id):
+
+    if current_user.role != "admin":
+        flash("Access Denied!", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    student = User.query.get_or_404(student_id)
+
+    if student.role == "admin":
+        flash("Admin account cannot be deleted.", "danger")
+        return redirect(url_for("main.admin_students"))
+
+    if student.complaints:
+        flash(
+            "Cannot delete student because they have submitted complaints.",
+            "warning"
+        )
+        return redirect(url_for("main.admin_students"))
+
+    db.session.delete(student)
+    db.session.commit()
+
+    flash("Student deleted successfully.", "success")
+
+    return redirect(url_for("main.admin_students"))
+
+
+@main.route("/categories/add", methods=["GET", "POST"])
+@login_required
+def add_category():
+
+    # Only Admin
+    if current_user.role != "admin":
+        flash("Access Denied!", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    form = CategoryForm()
+
+    if form.validate_on_submit():
+
+        category = Category.query.filter_by(
+            category_name=form.category_name.data
+        ).first()
+
+        if category:
+
+            flash("Category already exists!", "warning")
+
+            return render_template(
+                "category/add_category.html",
+                form=form
+            )
+
+        new_category = Category(
+            category_name=form.category_name.data,
+            description=form.description.data
+        )
+
+        db.session.add(new_category)
+        db.session.commit()
+
+        flash("Category added successfully!", "success")
+
+        return redirect(url_for("main.category_list"))
+
+    return render_template(
+        "category/add_category.html",
+        form=form
+    )
+
+
+@main.route("/categories")
+@login_required
+def category_list():
+
+    if current_user.role != "admin":
+        flash("Access Denied!", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    categories = Category.query.order_by(
+        Category.category_name.asc()
+    ).all()
+
+    return render_template(
+        "category/category_list.html",
+        categories=categories
+    )
+
+@main.route("/categories/edit/<int:category_id>", methods=["GET", "POST"])
+@login_required
+def edit_category(category_id):
+
+    # Admin only
+    if current_user.role != "admin":
+        flash("Access Denied!", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    category = Category.query.get_or_404(category_id)
+
+    form = CategoryForm()
+
+    if form.validate_on_submit():
+
+        # Check duplicate category name
+        existing = Category.query.filter(
+            Category.category_name == form.category_name.data,
+            Category.id != category.id
+        ).first()
+
+        if existing:
+            flash("Category already exists!", "warning")
+            return render_template(
+                "category/edit_category.html",
+                form=form,
+                category=category
+            )
+
+        category.category_name = form.category_name.data
+        category.description = form.description.data
+
+        db.session.commit()
+
+        flash("Category updated successfully!", "success")
+
+        return redirect(url_for("main.category_list"))
+
+    # Pre-fill form
+    form.category_name.data = category.category_name
+    form.description.data = category.description
+
+    return render_template(
+        "category/edit_category.html",
+        form=form,
+        category=category
+    )
+
+@main.route("/categories/delete/<int:category_id>")
+@login_required
+def delete_category(category_id):
+
+    # Admin only
+    if current_user.role != "admin":
+        flash("Access Denied!", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    category = Category.query.get_or_404(category_id)
+
+    # Check if category has complaints
+    if category.complaints:
+        flash(
+            "Cannot delete category because it is assigned to one or more complaints.",
+            "danger"
+        )
+        return redirect(url_for("main.category_list"))
+
+    db.session.delete(category)
+    db.session.commit()
+
+    flash("Category deleted successfully!", "success")
+
+    return redirect(url_for("main.category_list"))
+
+
+@main.route("/logout")
+@login_required
+def logout():
+
+    logout_user()
+
+    flash("Logged out successfully!", "success")
+
+    return redirect(url_for("main.login"))

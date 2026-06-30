@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}
+Complaint Details
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Grievance Info</h2>
+            <a href="{{ url_for('main.my_complaints') }}" class="btn btn-outline-secondary btn-sm px-3">
+                <i class="bi bi-arrow-left me-1"></i>Back to List
+            </a>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <span class="text-uppercase text-muted small fw-bold">Case #{{ complaint.id }}</span>
+                <div>
+                    {% if complaint.status == "Pending" %}
+                    <span class="badge bg-warning">Pending</span>
+                    {% elif complaint.status == "Resolved" %}
+                    <span class="badge bg-success">Resolved</span>
+                    {% else %}
+                    <span class="badge bg-info">In Progress</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-body">
+                <h3 class="h4 text-dark mb-3 fw-bold">{{ complaint.title }}</h3>
+                <div class="mb-4 text-muted small d-flex flex-wrap gap-3">
+                    <div>
+                        <i class="bi bi-tag-fill me-1"></i> <strong>Category:</strong> {{
+                        complaint.category.category_name }}
+                    </div>
+                    <div>
+                        <i class="bi bi-calendar3 me-1"></i> <strong>Registered:</strong> {{
+                        complaint.created_at.strftime("%d-%m-%Y %H:%M") }}
+                    </div>
+                </div>
+
+                <div class="border-top pt-4">
+                    <h5 class="fw-bold mb-3 small text-uppercase text-muted">Detailed Description</h5>
+                    <div class="p-3 bg-light rounded-3 text-dark whitespace-pre-wrap"
+                        style="white-space: pre-wrap; line-height: 1.6;">{{ complaint.description }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

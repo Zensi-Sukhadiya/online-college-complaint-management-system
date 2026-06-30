@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}
+Update Complaint Status
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h3 class="card-title h5 mb-0 fw-bold">
+                    <i class="bi bi-arrow-repeat text-primary me-2"></i>Update Complaint Status
+                </h3>
+            </div>
+
+            <div class="card-body">
+                <div class="alert alert-info border-0 shadow-none mb-4">
+                    <div class="d-flex flex-column">
+                        <small class="text-uppercase fw-bold opacity-75">Current Case</small>
+                        <span class="fw-semibold">#{{ complaint.id }}: {{ complaint.title }}</span>
+                        <div class="mt-1">
+                            <span class="text-muted small">Filed by: {{ complaint.student.name }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="POST" novalidate>
+                    <div class="mb-4">
+                        <label class="form-label">Select Actionable Status</label>
+                        <select name="status" class="form-select">
+                            <option value="Pending" {% if complaint.status=="Pending" %}selected{% endif %}>
+                                Pending / Queue
+                            </option>
+                            <option value="In Progress" {% if complaint.status=="In Progress" %}selected{% endif %}>
+                                In Progress / Review
+                            </option>
+                            <option value="Resolved" {% if complaint.status=="Resolved" %}selected{% endif %}>
+                                Resolved / Closed
+                            </option>
+
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{{ url_for('main.admin_view_complaint', complaint_id=complaint.id) }}"
+                            class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            Update Status
+                        </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

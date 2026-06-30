@@ -1,0 +1,68 @@
+.auth-container {
+    min-height: calc(100vh - 160px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+}
+
+.auth-card {
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    background: #ffffff;
+    width: 100%;
+    max-width: 500px;
+    transition: var(--transition-smooth);
+}
+
+.auth-header {
+    background: var(--primary-gradient) !important;
+    color: #ffffff !important;
+    padding: 2rem 1.5rem !important;
+    text-align: center;
+    border: none !important;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+}
+
+.auth-header h3 {
+    margin: 0;
+    font-weight: 800;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: white;
+}
+
+.auth-body {
+    padding: 2.25rem 2rem;
+}
+
+.auth-footer {
+    background-color: #f8fafc;
+    border-top: 1px solid var(--border-color);
+    padding: 1.25rem 2rem;
+    text-align: center;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.auth-footer a {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+}
+
+.auth-footer a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+/* Responsive auth spacing */
+@media (max-width: 576px) {
+    .auth-body {
+        padding: 1.5rem;
+    }
+}

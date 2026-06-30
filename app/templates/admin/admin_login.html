@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="card auth-card">
+        <div class="auth-header bg-dark"
+            style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;">
+            <h3>
+                <i class="bi bi-shield-lock-fill"></i>
+                Administrator Login
+            </h3>
+        </div>
+
+        <div class="auth-body">
+            <form method="POST" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="mb-4">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control", placeholder="Admin Email") }}
+                    {% if form.email.errors %}
+                    {% for error in form.email.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    {{ form.password.label(class="form-label") }}
+                    {{ form.password(class="form-control", placeholder="Admin Password") }}
+                    {% if form.password.errors %}
+                    {% for error in form.password.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="d-grid mt-4">
+                    {{ form.submit(class="btn btn-dark btn-lg w-100", value="Login as Admin") }}
+                </div>
+            </form>
+        </div>
+
+        <div class="auth-footer text-muted">
+            Secure admin access area.
+            <a href="{{ url_for('main.home') }}">Go Back Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

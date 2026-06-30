@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}
+Home - College Complaint Management System
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-wrapper text-center">
+    <div class="hero-glow"></div>
+    <div class="container animate-fade-in">
+        <span class="hero-badge mb-3">Online Grievance Redressal Portal</span>
+        <h1 class="hero-title display-4">Fast, Transparent &<br>Actionable Resolutions</h1>
+        <p class="hero-desc lead">
+            A state-of-the-art helping desk framework designed for college students to lodge complaints, track progress
+            online, and connect with academic managers safely and securely.
+        </p>
+    </div>
+</section>
+
+<!-- Direct Portal Access Grid -->
+<div class="row justify-content-center g-4 mb-5 px-2 px-md-3">
+    <!-- Student Card -->
+    <div class="col-12 col-sm-10 col-md-5 card-3d-wrapper">
+        <div class="card landing-card card-3d p-4">
+            <div class="card-body d-flex flex-column align-items-center justify-content-between text-center pb-2">
+                <div class="mb-4">
+                    <div class="landing-icon-container mx-auto mb-4">
+                        <i class="bi bi-person-fill-gear"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3 text-dark">Student Portal</h3>
+                    <p class="text-muted small px-2">
+                        Lodge issues regarding hostel facilities, academics, fees, scheduling, or campus utilities.
+                        Monitor action history live.
+                    </p>
+                </div>
+                <div class="w-100 d-grid mt-2">
+                    <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Student Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Card -->
+    <div class="col-12 col-sm-10 col-md-5 card-3d-wrapper">
+        <div class="card landing-card card-3d p-4">
+            <div class="card-body d-flex flex-column align-items-center justify-content-between text-center pb-2">
+                <div class="mb-4">
+                    <div class="landing-icon-container admin-color mx-auto mb-4">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <h3 class="h4 fw-bold mb-3 text-dark">Administrator Panel</h3>
+                    <p class="text-muted small px-2">
+                        Review submitted grievance dossiers, assign routing categories, adjust case status, and
+                        interface with enrolled students.
+                    </p>
+                </div>
+                <div class="w-100 d-grid mt-2">
+                    <a href="{{ url_for('main.admin_login') }}" class="btn btn-dark btn-lg">
+                        <i class="bi bi-shield-lock-fill me-2"></i>Admin Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Workflow Steps Section -->
+<section class="timeline-section border-top">
+    <div class="text-center mb-5">
+        <span class="text-uppercase text-primary small fw-bold tracking-wider">Process Workflow</span>
+        <h2 class="h3 fw-bold mt-2">How it Works</h2>
+    </div>
+
+    <div class="row g-4 justify-content-center px-2">
+        <!-- Step 1 -->
+        <div class="col-12 col-sm-6 col-md-4 workflow-connector">
+            <div class="card timeline-card">
+                <div class="card-body p-0">
+                    <div class="step-num shadow-sm">1</div>
+                    <h4 class="step-title">Lodge Complaint</h4>
+                    <p class="text-muted small px-3">
+                        Register, choose a department category, fill in description details, and submit.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="col-12 col-sm-6 col-md-4 workflow-connector">
+            <div class="card timeline-card">
+                <div class="card-body p-0">
+                    <div class="step-num shadow-sm">2</div>
+                    <h4 class="step-title">Administrative Processing</h4>
+                    <p class="text-muted small px-3">
+                        Admin reviews the filing status, assigns review, and schedules resolution updates.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="col-12 col-sm-6 col-md-4">
+            <div class="card timeline-card last-step">
+                <div class="card-body p-0">
+                    <div class="step-num shadow-sm">3</div>
+                    <h4 class="step-title">Verified Resolution</h4>
+                    <p class="text-muted small px-3">
+                        Receive instant status changes and check offline resolution records for cases.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Support & Inquiry contact banner -->
+<section class="support-banner mb-3 mx-2 mx-md-3">
+    <div class="row align-items-center g-3 text-center text-md-start">
+        <div class="col-12 col-md-8">
+            <h4 class="fw-bold mb-1"><i class="bi bi-headset text-primary me-2"></i>Need Immediate Support?</h4>
+            <p class="text-muted small mb-0">For issues login, creating accounts, or editing profiles, reach the digital
+                helpdesk at security office.</p>
+        </div>
+        <div class="col-12 col-md-4 text-md-end">
+            <a href="mailto:support@college.edu" class="btn btn-outline-primary btn-sm px-4">
+                Email Helpdesk
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Student Registration{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="card auth-card" style="max-width: 650px;">
+        <div class="auth-header">
+            <h3>
+                <i class="bi bi-person-plus-fill"></i>
+                Student Registration
+            </h3>
+        </div>
+
+        <div class="auth-body">
+            <form method="POST" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control", placeholder="Full Name") }}
+                        {% if form.name.errors %}
+                        {% for error in form.name.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control", placeholder="student@college.edu") }}
+                        {% if form.email.errors %}
+                        {% for error in form.email.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        {{ form.department.label(class="form-label") }}
+                        {{ form.department(class="form-control", placeholder="e.g. Computer Science") }}
+                        {% if form.department.errors %}
+                        {% for error in form.department.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        {{ form.contact_number.label(class="form-label") }}
+                        {{ form.contact_number(class="form-control", placeholder="Contact Phone Number") }}
+                        {% if form.contact_number.errors %}
+                        {% for error in form.contact_number.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control", placeholder="Password") }}
+                        {% if form.password.errors %}
+                        {% for error in form.password.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        {{ form.confirm_password.label(class="form-label") }}
+                        {{ form.confirm_password(class="form-control", placeholder="Confirm Password") }}
+                        {% if form.confirm_password.errors %}
+                        {% for error in form.confirm_password.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-grid mt-4">
+                    {{ form.submit(class="btn btn-primary btn-lg w-100") }}
+                </div>
+            </form>
+        </div>
+
+        <div class="auth-footer text-muted">
+            Already have an account?
+            <a href="{{ url_for('main.login') }}">Login</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

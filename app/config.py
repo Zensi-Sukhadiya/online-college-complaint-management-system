@@ -1,0 +1,8 @@
+import os
+
+class Config:
+    SECRET_KEY = os.environ.get("SECRET_KEY") or "this_is_a_secret_key"
+
+    SQLALCHEMY_DATABASE_URI = "sqlite:///college.db"
+
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
