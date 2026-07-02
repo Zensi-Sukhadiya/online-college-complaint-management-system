@@ -48,6 +48,35 @@ Edit Complaint
                         {% endif %}
                     </div>
 
+                    <div class="mb-4">
+
+                        {{ form.attachment.label(class="form-label") }}
+
+                        {{ form.attachment(class="form-control") }}
+
+                        {% if complaint.attachment %}
+
+                            <div class="mt-2">
+
+                                Current File :
+
+                                <a href="{{ url_for('static', filename='uploads/' + complaint.attachment) }}"
+                                target="_blank">
+
+                                    View Attachment
+
+                                </a>
+
+                            </div>
+
+                        {% endif %}
+
+                        <div class="form-text">
+                            Upload a new file if you want to replace the existing attachment.
+                        </div>
+
+                    </div>
+
                     <div class="d-flex justify-content-end gap-2 mt-4">
                         <a href="{{ url_for('main.my_complaints') }}" class="btn btn-outline-secondary">
                             Cancel

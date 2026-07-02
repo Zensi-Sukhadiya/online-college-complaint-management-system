@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request, Blueprint
+from flask import (render_template, redirect, url_for, flash, request, Blueprint, current_app)
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from .forms import RegisterForm, LoginForm, ComplaintForm, CategoryForm
@@ -6,6 +6,9 @@ from .models import User, Category, Complaint
 from . import db
 from sqlalchemy import or_
 from flask import jsonify
+import os
+import uuid
+from werkzeug.utils import secure_filename
 
 main = Blueprint("main", __name__)
 
@@ -125,11 +128,33 @@ def add_complaint():
 
     if form.validate_on_submit():
 
+        filename = None
+
+    if form.attachment.data:
+
+        file = form.attachment.data
+
+        extension = file.filename.rsplit(".", 1)[1].lower()
+
+        filename = (
+            str(uuid.uuid4()) +
+            "." +
+            extension
+        )
+
+        file.save(
+            os.path.join(
+                current_app.config["UPLOAD_FOLDER"],
+                filename
+            )
+        )
+
         complaint = Complaint(
             student_id=current_user.id,
             category_id=form.category.data,
             title=form.title.data,
             description=form.description.data,
+            attachment=filename,
             status="Pending"
         )
 
@@ -203,20 +228,52 @@ def edit_complaint(complaint_id):
         complaint.title = form.title.data
         complaint.description = form.description.data
 
-        db.session.commit()
+    if form.attachment.data:
 
-        flash("Complaint updated successfully!", "success")
+        if complaint.attachment:
 
-        return redirect(url_for("main.my_complaints"))
+            old_file = os.path.join(
+                current_app.config["UPLOAD_FOLDER"],
+                complaint.attachment
+            )
 
-    # Populate form with existing values
-    form.category.data = complaint.category_id
-    form.title.data = complaint.title
-    form.description.data = complaint.description
+            if os.path.exists(old_file):
+                os.remove(old_file)
+
+        file = form.attachment.data
+
+        extension = file.filename.rsplit(".", 1)[1].lower()
+
+        filename = (
+            str(uuid.uuid4()) +
+            "." +
+            extension
+        )
+
+        file.save(
+            os.path.join(
+                current_app.config["UPLOAD_FOLDER"],
+                filename
+            )
+        )
+
+        complaint.attachment = filename
+
+    db.session.commit()
+
+    flash(
+        "Complaint updated successfully!",
+        "success"
+    )
 
     return render_template(
         "complaint/edit_complaint.html",
-        form=form
+        form=form,
+        complaint=complaint
+    )
+
+    return redirect(
+        url_for("main.my_complaints")
     )
 
 
@@ -235,6 +292,16 @@ def delete_complaint(complaint_id):
     if complaint.status != "Pending":
         flash("Only pending complaints can be deleted.", "warning")
         return redirect(url_for("main.my_complaints"))
+
+    if complaint.attachment:
+
+        file_path = os.path.join(
+            current_app.config["UPLOAD_FOLDER"],
+            complaint.attachment
+        )
+
+    if os.path.exists(file_path):
+        os.remove(file_path)
 
     db.session.delete(complaint)
     db.session.commit()

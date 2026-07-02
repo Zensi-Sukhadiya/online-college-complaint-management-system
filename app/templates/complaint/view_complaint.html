@@ -41,11 +41,54 @@ Complaint Details
                     </div>
                 </div>
 
-                <div class="border-top pt-4">
-                    <h5 class="fw-bold mb-3 small text-uppercase text-muted">Detailed Description</h5>
-                    <div class="p-3 bg-light rounded-3 text-dark whitespace-pre-wrap"
-                        style="white-space: pre-wrap; line-height: 1.6;">{{ complaint.description }}</div>
+                <div class="border-top pt-4 mb-4">
+
+                    <h5 class="fw-bold mb-3 small text-uppercase text-muted">
+                        Detailed Description
+                    </h5>
+
+                    <div class="p-3 bg-light rounded-3 text-dark"
+                        style="white-space: pre-wrap; line-height:1.6;">
+
+                        {{ complaint.description }}
+
+                    </div>
+
                 </div>
+
+                {% if complaint.attachment %}
+
+                <div class="border-top pt-4">
+
+                    <h5 class="fw-bold mb-3 small text-uppercase text-muted">
+                        Attachment
+                    </h5>
+
+                    <div class="d-flex gap-2">
+
+                        <a href="{{ url_for('static', filename='uploads/' + complaint.attachment) }}"
+                        target="_blank"
+                        class="btn btn-outline-primary">
+
+                            <i class="bi bi-eye"></i>
+                            View
+
+                        </a>
+
+                        <a href="{{ url_for('static', filename='uploads/' + complaint.attachment) }}"
+                        download
+                        class="btn btn-outline-success">
+
+                            <i class="bi bi-download"></i>
+                            Download
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+                {% endif %}
             </div>
         </div>
     </div>

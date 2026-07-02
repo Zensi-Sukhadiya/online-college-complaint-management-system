@@ -76,6 +76,12 @@ class Complaint(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
 
+    # Attachment filename
+    attachment = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
     status = db.Column(
         db.String(20),
         nullable=False,

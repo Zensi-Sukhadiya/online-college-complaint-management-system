@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField, TextAreaField
+from flask_wtf.file import FileField, FileAllowed
+from wtforms import (StringField, PasswordField, SubmitField, SelectField, TextAreaField)
 from wtforms.validators import DataRequired, Email, Length, EqualTo
-
 
 class RegisterForm(FlaskForm):
     name = StringField(
@@ -58,6 +58,7 @@ class LoginForm(FlaskForm):
 
 
 class ComplaintForm(FlaskForm):
+
     category = SelectField(
         "Complaint Category",
         coerce=int,
@@ -66,12 +67,28 @@ class ComplaintForm(FlaskForm):
 
     title = StringField(
         "Complaint Title",
-        validators=[DataRequired(), Length(min=5, max=200)]
+        validators=[
+            DataRequired(),
+            Length(min=5, max=200)
+        ]
     )
 
     description = TextAreaField(
         "Complaint Description",
-        validators=[DataRequired(), Length(min=10)]
+        validators=[
+            DataRequired(),
+            Length(min=10)
+        ]
+    )
+
+    attachment = FileField(
+        "Attachment",
+        validators=[
+            FileAllowed(
+                ["jpg", "jpeg", "png", "pdf", "doc", "docx"],
+                "Only Images, PDF and Word files are allowed."
+            )
+        ]
     )
 
     submit = SubmitField("Submit Complaint")
