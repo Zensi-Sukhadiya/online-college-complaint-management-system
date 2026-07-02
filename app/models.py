@@ -99,5 +99,85 @@ class Complaint(db.Model):
         onupdate=datetime.utcnow
     )
 
+    comments = db.relationship(
+        "Comment",
+        backref="complaint",
+        lazy=True,
+        cascade="all, delete-orphan"
+    )
+
     def __repr__(self):
         return f"<Complaint {self.title}>"
+    
+class ComplaintHistory(db.Model):
+    __tablename__ = "complaint_history"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    complaint_id = db.Column(
+        db.Integer,
+        db.ForeignKey("complaints.id"),
+        nullable=False
+    )
+
+    status = db.Column(
+        db.String(20),
+        nullable=False
+    )
+
+    remark = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow
+    )
+
+    complaint = db.relationship(
+        "Complaint",
+        backref=db.backref(
+            "history",
+            lazy=True,
+            order_by="ComplaintHistory.created_at.desc()"
+        )
+    )
+
+    def __repr__(self):
+        return f"<History {self.id}>"
+    
+class Comment(db.Model):
+    __tablename__ = "comments"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    complaint_id = db.Column(
+        db.Integer,
+        db.ForeignKey("complaints.id"),
+        nullable=False
+    )
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    message = db.Column(db.Text, nullable=False)
+
+    created_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow
+    )
+
+    user = db.relationship(
+        "User",
+        backref="comments"
+    )
+
+    def __repr__(self):
+        return f"<Comment {self.id}>"

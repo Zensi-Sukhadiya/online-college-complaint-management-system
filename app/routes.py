@@ -1,8 +1,8 @@
 from flask import (render_template, redirect, url_for, flash, request, Blueprint, current_app)
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
-from .forms import RegisterForm, LoginForm, ComplaintForm, CategoryForm
-from .models import User, Category, Complaint
+from .forms import RegisterForm, LoginForm, ComplaintForm, CategoryForm, UpdateStatusForm, CommentForm
+from .models import User, Category, Complaint, ComplaintHistory, Comment
 from . import db
 from sqlalchemy import or_
 from flask import jsonify
@@ -159,6 +159,17 @@ def add_complaint():
         )
 
         db.session.add(complaint)
+
+        db.session.flush()
+
+        history = ComplaintHistory(
+            complaint_id=complaint.id,
+            status="Pending",
+            remark="Complaint submitted by student."
+        )
+
+        db.session.add(history)
+
         db.session.commit()
 
         flash("Complaint submitted successfully!", "success")
@@ -491,13 +502,26 @@ def update_status(complaint_id):
 
     complaint = Complaint.query.get_or_404(complaint_id)
 
-    if request.method == "POST":
+    form = UpdateStatusForm()
 
-        complaint.status = request.form.get("status")
+    if form.validate_on_submit():
+
+        complaint.status = form.status.data
+
+        history = ComplaintHistory(
+            complaint_id=complaint.id,
+            status=form.status.data,
+            remark=form.remark.data
+        )
+        
+        db.session.add(history)
 
         db.session.commit()
 
-        flash("Complaint status updated successfully!", "success")
+        flash(
+            "Complaint updated successfully!",
+            "success"
+        )
 
         return redirect(
             url_for(
@@ -506,10 +530,46 @@ def update_status(complaint_id):
             )
         )
 
+    form.status.data = complaint.status
+
     return render_template(
         "admin/update_status.html",
-        complaint=complaint
+        complaint=complaint,
+        form=form
     )
+
+@main.route("/complaint/comment/<int:complaint_id>", methods=["POST"])
+@login_required
+def add_comment(complaint_id):
+
+    complaint = Complaint.query.get_or_404(complaint_id)
+
+    form = CommentForm()
+
+    if form.validate_on_submit():
+
+        comment = Comment(
+            complaint_id=complaint.id,
+            user_id=current_user.id,
+            message=form.message.data
+        )
+
+        db.session.add(comment)
+        db.session.commit()
+
+        flash("Comment added successfully!", "success")
+
+    if current_user.role == "admin":
+        return redirect(url_for(
+            "main.admin_view_complaint",
+            complaint_id=complaint.id
+        ))
+
+    return redirect(url_for(
+        "main.view_complaint",
+        complaint_id=complaint.id
+    ))
+
 
 @main.route("/admin/students")
 @login_required

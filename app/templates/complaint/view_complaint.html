@@ -89,6 +89,38 @@ Complaint Details
                 </div>
 
                 {% endif %}
+
+                {% if complaint.history %}
+
+                <hr>
+
+                <h5>Status History</h5>
+
+                {% for h in complaint.history %}
+
+                <div class="card mb-2">
+                    <div class="card-body">
+
+                        <strong>Status:</strong>
+                        {{ h.status }}
+
+                        <br>
+
+                        <strong>Remark:</strong>
+                        {{ h.remark }}
+
+                        <br>
+
+                        <small>
+                            {{ h.created_at.strftime("%d-%m-%Y %H:%M") }}
+                        </small>
+
+                    </div>
+                </div>
+
+                {% endfor %}
+
+                {% endif %}
             </div>
         </div>
     </div>

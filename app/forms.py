@@ -113,3 +113,42 @@ class CategoryForm(FlaskForm):
     )
 
     submit = SubmitField("Save Category")
+
+class UpdateStatusForm(FlaskForm):
+
+    status = SelectField(
+        "Complaint Status",
+        choices=[
+            ("Pending", "Pending"),
+            ("In Progress", "In Progress"),
+            ("Resolved", "Resolved")
+        ],
+        validators=[DataRequired()]
+    )
+
+    remark = TextAreaField(
+        "Admin Remark",
+        validators=[
+            DataRequired(),
+            Length(
+                min=5,
+                max=500
+            )
+        ]
+    )
+
+    submit = SubmitField(
+        "Update Complaint"
+    )
+
+class CommentForm(FlaskForm):
+
+    message = TextAreaField(
+        "Comment",
+        validators=[
+            DataRequired(),
+            Length(min=2, max=1000)
+        ]
+    )
+
+    submit = SubmitField("Send")
