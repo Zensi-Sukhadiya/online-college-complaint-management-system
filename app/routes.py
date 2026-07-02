@@ -5,6 +5,7 @@ from .forms import RegisterForm, LoginForm, ComplaintForm, CategoryForm
 from .models import User, Category, Complaint
 from . import db
 from sqlalchemy import or_
+from flask import jsonify
 
 main = Blueprint("main", __name__)
 
@@ -352,6 +353,52 @@ def admin_complaints():
         status=status
     )
 
+@main.route("/admin/complaints/search")
+@login_required
+def complaint_live_search():
+
+    if current_user.role != "admin":
+        return jsonify([])
+
+    search = request.args.get("q", "")
+    status = request.args.get("status", "")
+
+    complaints = Complaint.query.join(User).join(Category)
+
+    if search:
+        complaints = complaints.filter(
+            or_(
+                User.name.ilike(f"%{search}%"),
+                User.email.ilike(f"%{search}%"),
+                Complaint.title.ilike(f"%{search}%"),
+                Category.category_name.ilike(f"%{search}%")
+            )
+        )
+
+    if status:
+        complaints = complaints.filter(
+            Complaint.status == status
+        )
+
+    complaints = complaints.order_by(
+        Complaint.created_at.desc()
+    ).all()
+
+    data = []
+
+    for complaint in complaints:
+
+        data.append({
+            "id": complaint.id,
+            "student": complaint.student.name,
+            "category": complaint.category.category_name,
+            "title": complaint.title,
+            "status": complaint.status,
+            "date": complaint.created_at.strftime("%d-%m-%Y")
+        })
+
+    return jsonify(data)
+
 @main.route("/admin/complaint/<int:complaint_id>")
 @login_required
 def admin_view_complaint(complaint_id):
@@ -426,6 +473,41 @@ def admin_students():
         students=students,
         search=search
     )
+
+@main.route("/admin/students/search")
+@login_required
+def student_live_search():
+
+    if current_user.role != "admin":
+        return jsonify([])
+
+    search = request.args.get("q", "")
+
+    students = User.query.filter(User.role == "student")
+
+    if search:
+        students = students.filter(
+            or_(
+                User.name.ilike(f"%{search}%"),
+                User.email.ilike(f"%{search}%"),
+                User.department.ilike(f"%{search}%")
+            )
+        )
+
+    students = students.order_by(User.name.asc()).all()
+
+    data = []
+
+    for student in students:
+        data.append({
+            "id": student.id,
+            "name": student.name,
+            "email": student.email,
+            "department": student.department,
+            "complaints": len(student.complaints)
+        })
+
+    return jsonify(data)
 
 @main.route("/admin/student/<int:student_id>")
 @login_required

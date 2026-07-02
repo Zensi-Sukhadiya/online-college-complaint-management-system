@@ -24,8 +24,7 @@
                     <span class="input-group-text bg-white border-end-0 text-muted">
                         <i class="bi bi-search"></i>
                     </span>
-                    <input type="text" name="search" class="form-control border-start-0"
-                        placeholder="Search Student name, email, or department..." value="{{ search }}">
+                    <input type="text" id="searchStudent" class="form-control border-start-0" placeholder="Search Student name, email or department..." autocomplete="off">
                 </div>
             </div>
             <div class="col-md-3 d-grid">
@@ -51,11 +50,11 @@
                         <th style="width: 180px; text-align: right;">Action</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="studentTable">
                     {% if students %}
                     {% for student in students %}
                     <tr>
-                        <td class="fw-bold text-muted">#{{ student.id }}</td>
+                        <td class="fw-bold text-muted">#{{ loop.index }}</td>
                         <td class="fw-semibold text-dark">
                             <i class="bi bi-person-circle text-secondary me-2"></i>{{ student.name }}
                         </td>

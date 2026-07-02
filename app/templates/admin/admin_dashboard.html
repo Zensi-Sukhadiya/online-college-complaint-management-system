@@ -117,7 +117,7 @@
                             {% if recent_complaints %}
                             {% for complaint in recent_complaints %}
                             <tr>
-                                <td class="fw-bold text-muted">#{{ complaint.id }}</td>
+                                <td class="fw-bold text-muted">#{{  loop.index }}</td>
                                 <td class="fw-semibold">{{ complaint.student.name }}</td>
                                 <td>{{ complaint.title }}</td>
                                 <td>
