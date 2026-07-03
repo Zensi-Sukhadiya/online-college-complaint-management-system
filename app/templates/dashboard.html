@@ -56,6 +56,34 @@ Student Dashboard
     </div>
 </div>
 
+
+<!--chart -->
+<div class="row g-4 mt-4">
+
+    <div class="col-lg-6" style="margin-bottom : 70px;">
+        <div class="card shadow-sm">
+            <div class="card-header">Complaint Status</div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header">Complaints</div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="BarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
 <!-- Quick Actions & Recent Complaints -->
 <div class="row g-4">
     <div class="col-lg-3">
@@ -134,4 +162,71 @@ Student Dashboard
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const labels = [
+    "Pending",
+    "In Progress",
+    "Resolved"
+];
+
+const values = [
+    {{ pending }},
+    {{ progress }},
+    {{ resolved }}
+];
+
+new Chart(document.getElementById("pieChart"),{
+
+    type:"pie",
+
+    data:{
+
+        labels:labels,
+
+        datasets:[{
+
+            data:values,
+
+            backgroundColor:[
+                "#ffc107",
+                "#0dcaf0",
+                "#198754"
+            ]
+
+        }]
+
+    }
+
+});
+
+new Chart(document.getElementById("BarChart"), {
+
+    type: "bar",
+
+    data: {
+        labels: labels,
+        datasets: [{
+            label: "Complaints",
+            data: values,
+            backgroundColor: [
+                "#ffc107",
+                "#0dcaf0",
+                "#198754"
+            ]
+        }]
+    },
+
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+
+});
+
+</script>
+
 {% endblock %}

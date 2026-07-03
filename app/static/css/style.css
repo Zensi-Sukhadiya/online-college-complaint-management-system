@@ -866,6 +866,16 @@ footer {
     color: var(--success-color);
 }
 
+/* admin - chart css */
+.chart-container {
+    position: relative;
+    height: 320px;
+}
+
+.chart-container canvas {
+    max-height: 320px !important;
+}
+
 /* ==========================================
    RESPONSIVE — Tablet & Laptop (≤991px)
    ========================================== */

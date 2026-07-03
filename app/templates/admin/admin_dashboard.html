@@ -70,6 +70,33 @@
     </div>
 </div>
 
+<!-- chart -->
+<div class="row g-4 mt-4">
+
+    <div class="col-lg-6" style="margin-bottom : 70px;">
+        <div class="card shadow-sm">
+            <div class="card-header">Complaint Status</div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="adminPie"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header">Complaints</div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="adminBar"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
 <!-- Action Grid & Recent Complaints -->
 <div class="row g-4">
     <div class="col-md-3">
@@ -153,4 +180,69 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const adminLabels = [
+    "Pending",
+    "In Progress",
+    "Resolved"
+];
+
+const adminValues = [
+    {{ pending }},
+    {{ progress }},
+    {{ resolved }}
+];
+
+new Chart(document.getElementById("adminPie"), {
+
+    type: "doughnut",
+
+    data: {
+        labels: adminLabels,
+        datasets: [{
+            data: adminValues,
+            backgroundColor: [
+                "#ffc107",
+                "#0dcaf0",
+                "#198754"
+            ]
+        }]
+    },
+
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+
+});
+
+new Chart(document.getElementById("adminBar"), {
+
+    type: "bar",
+
+    data: {
+        labels: adminLabels,
+        datasets: [{
+            label: "Complaints",
+            data: adminValues,
+            backgroundColor: [
+                "#ffc107",
+                "#0dcaf0",
+                "#198754"
+            ]
+        }]
+    },
+
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+
+});
+</script>
+
 {% endblock %}
