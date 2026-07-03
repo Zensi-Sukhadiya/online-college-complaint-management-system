@@ -203,9 +203,12 @@ def view_complaint(complaint_id):
         flash("You are not authorized to view this complaint.", "danger")
         return redirect(url_for("main.my_complaints"))
 
+    form = CommentForm()
+
     return render_template(
         "complaint/view_complaint.html",
-        complaint=complaint
+        complaint=complaint,
+        form=form
     )
 
 
@@ -487,9 +490,12 @@ def admin_view_complaint(complaint_id):
 
     complaint = Complaint.query.get_or_404(complaint_id)
 
+    form = CommentForm()
+
     return render_template(
         "admin/view_complaint.html",
-        complaint=complaint
+        complaint=complaint,
+        form=form
     )
 
 @main.route("/admin/complaint/status/<int:complaint_id>", methods=["GET", "POST"])

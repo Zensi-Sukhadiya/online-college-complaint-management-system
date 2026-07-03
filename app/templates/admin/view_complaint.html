@@ -120,4 +120,99 @@ Complaint Details
         </div>
     </div>
 </div>
+
+<hr class="my-4">
+
+<h5 class="fw-bold mb-3">
+    <i class="bi bi-chat-dots"></i>
+    Discussion
+</h5>
+
+<!-- Existing Comments -->
+{% if complaint.comments %}
+
+    {% for comment in complaint.comments %}
+
+    <div class="card mb-3">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between">
+
+                <strong>
+
+                    {% if comment.user.role == "admin" %}
+
+                        <span class="text-primary">
+                            Admin
+                        </span>
+
+                    {% else %}
+
+                        <span class="text-success">
+                            {{ comment.user.name }}
+                        </span>
+
+                    {% endif %}
+
+                </strong>
+
+                <small class="text-muted">
+                    {{ comment.created_at.strftime("%d-%m-%Y %H:%M") }}
+                </small>
+
+            </div>
+
+            <hr>
+
+            <p class="mb-0">
+                {{ comment.message }}
+            </p>
+
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+{% else %}
+
+<div class="alert alert-light">
+    No discussion yet.
+</div>
+
+{% endif %}
+
+<!-- Reply Form -->
+
+<div class="card mt-4">
+
+    <div class="card-header">
+        Reply to Student
+    </div>
+
+    <div class="card-body">
+
+        <form method="POST"
+              action="{{ url_for('main.add_comment', complaint_id=complaint.id) }}">
+
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+
+                {{ form.message(
+                    class="form-control",
+                    rows="4",
+                    placeholder="Type your reply..."
+                ) }}
+
+            </div>
+
+            {{ form.submit(class="btn btn-primary") }}
+
+        </form>
+
+    </div>
+
+</div>
 {% endblock %}
