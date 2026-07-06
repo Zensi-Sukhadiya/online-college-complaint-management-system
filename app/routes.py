@@ -2,7 +2,7 @@ from flask import (render_template, redirect, url_for, flash, request, Blueprint
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from .forms import RegisterForm, LoginForm, ComplaintForm, CategoryForm, UpdateStatusForm, CommentForm
-from .models import User, Category, Complaint, ComplaintHistory, Comment
+from .models import User, Category, Complaint, ComplaintHistory, Comment, Notification
 from . import db
 from sqlalchemy import or_
 from flask import jsonify
@@ -169,6 +169,20 @@ def add_complaint():
         )
 
         db.session.add(history)
+
+        # Notify all admins
+        admins = User.query.filter_by(role="admin").all()
+
+        for admin in admins:
+
+            notification = Notification(
+                user_id=admin.id,
+                complaint_id=complaint.id,
+                message=f"New complaint submitted by {current_user.name}"
+            )
+
+            db.session.add(notification)
+
 
         db.session.commit()
 
@@ -522,6 +536,15 @@ def update_status(complaint_id):
         
         db.session.add(history)
 
+        notification = Notification(
+            user_id=complaint.student_id,
+            complaint_id=complaint.id,
+            message=f"Your complaint status has been updated to '{form.status.data}'."
+        )
+
+        db.session.add(notification)
+
+
         db.session.commit()
 
         flash(
@@ -561,6 +584,28 @@ def add_comment(complaint_id):
         )
 
         db.session.add(comment)
+
+        # Notify the other person
+        if current_user.role == "admin":
+
+            notification = Notification(
+                user_id=complaint.student_id,
+                complaint_id=complaint.id,
+                message="Admin replied to your complaint."
+            )
+
+        else:
+
+            admin = User.query.filter_by(role="admin").first()
+
+            notification = Notification(
+                user_id=admin.id,
+                complaint_id=complaint.id,
+                message=f"{current_user.name} replied to Complaint #{complaint.id}."
+            )
+
+        db.session.add(notification)
+
         db.session.commit()
 
         flash("Comment added successfully!", "success")
@@ -825,6 +870,21 @@ def delete_category(category_id):
     flash("Category deleted successfully!", "success")
 
     return redirect(url_for("main.category_list"))
+
+@main.route("/notifications")
+@login_required
+def notifications():
+
+    notifications = Notification.query.filter_by(
+        user_id=current_user.id
+    ).order_by(
+        Notification.created_at.desc()
+    ).all()
+
+    return render_template(
+        "notifications.html",
+        notifications=notifications
+    )
 
 
 @main.route("/logout")

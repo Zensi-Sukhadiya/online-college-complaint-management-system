@@ -876,6 +876,19 @@ footer {
     max-height: 320px !important;
 }
 
+/* notification css*/
+.dropdown-menu{
+    border-radius:12px;
+}
+
+.dropdown-item{
+    white-space:normal;
+}
+
+.dropdown-item:hover{
+    background:#f8f9fa;
+}
+
 /* ==========================================
    RESPONSIVE — Tablet & Laptop (≤991px)
    ========================================== */

@@ -23,6 +23,35 @@ def create_app():
     from . import models
     # from .routes import *
     
+
+    @app.context_processor
+    def inject_notifications():
+
+        from flask_login import current_user
+        from .models import Notification
+
+        if current_user.is_authenticated:
+
+            notifications = Notification.query.filter_by(
+                user_id=current_user.id
+            ).order_by(
+                Notification.created_at.desc()
+            ).limit(5).all()
+
+            unread = Notification.query.filter_by(
+                user_id=current_user.id,
+                is_read=False
+            ).count()
+
+        else:
+            notifications = []
+            unread = 0
+
+        return dict(
+            notifications=notifications,
+            unread_notifications=unread
+        )
+        
     from .routes import main
     app.register_blueprint(main)
 
