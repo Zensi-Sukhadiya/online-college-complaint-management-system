@@ -153,22 +153,64 @@ class CommentForm(FlaskForm):
 
     submit = SubmitField("Send")
 
-class AnnouncementForm(FlaskForm):
-    title = StringField(
-        "Title",
-        validators=[DataRequired(), Length(max=200)]
+
+class UpdateProfileForm(FlaskForm):
+
+    name = StringField(
+        "Full Name",
+        validators=[
+            DataRequired(),
+            Length(max=100)
+        ]
     )
 
-    content = TextAreaField(
-        "Content",
+    contact_number = StringField(
+        "Contact Number",
+        validators=[
+            DataRequired(),
+            Length(max=15)
+        ]
+    )
+
+    department = SelectField(
+        "Department",
+        choices=[
+            ("Computer Science", "Computer Science"),
+            ("Information Technology", "Information Technology"),
+            ("Mechanical Engineering", "Mechanical Engineering"),
+            ("Civil Engineering", "Civil Engineering"),
+            ("Electrical Engineering", "Electrical Engineering"),
+            ("Electronics & Communication", "Electronics & Communication")
+        ]
+    )
+
+    update_submit = SubmitField("Update Profile")
+
+
+class ChangePasswordForm(FlaskForm):
+
+    current_password = PasswordField(
+        "Current Password",
         validators=[DataRequired()]
     )
 
-    important = BooleanField("Important")
-
-    published = BooleanField(
-        "Published",
-        default=True
+    new_password = PasswordField(
+        "New Password",
+        validators=[
+            DataRequired(),
+            Length(min=6)
+        ]
     )
 
-    submit = SubmitField("Save Announcement")
+    confirm_password = PasswordField(
+        "Confirm Password",
+        validators=[
+            DataRequired(),
+            EqualTo(
+                "new_password",
+                message="Passwords must match."
+            )
+        ]
+    )
+
+    password_submit = SubmitField("Change Password")

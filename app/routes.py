@@ -1,7 +1,7 @@
 from flask import (render_template, redirect, url_for, flash, request, Blueprint, current_app)
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
-from .forms import RegisterForm, LoginForm, ComplaintForm, CategoryForm, UpdateStatusForm, CommentForm
+from .forms import RegisterForm, LoginForm, ComplaintForm, CategoryForm, UpdateStatusForm, CommentForm, UpdateProfileForm, ChangePasswordForm
 from .models import User, Category, Complaint, ComplaintHistory, Comment, Notification
 from datetime import datetime, timedelta
 from flask import send_file
@@ -13,7 +13,6 @@ from flask import jsonify
 import os
 import uuid
 from werkzeug.utils import secure_filename
-
 main = Blueprint("main", __name__)
 
 
@@ -1032,6 +1031,64 @@ def delete_category(category_id):
     flash("Category deleted successfully!", "success")
 
     return redirect(url_for("main.category_list"))
+
+@main.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+
+    if current_user.role != "student":
+        flash("Access Denied!", "danger")
+        return redirect(url_for("main.admin_dashboard"))
+
+    profile_form = UpdateProfileForm()
+    password_form = ChangePasswordForm()
+
+    # Update Profile
+    if profile_form.update_submit.data and profile_form.validate_on_submit():
+
+        current_user.name = profile_form.name.data
+        current_user.contact_number = profile_form.contact_number.data
+        current_user.department = profile_form.department.data
+
+        db.session.commit()
+
+        flash("Profile updated successfully!", "success")
+
+        return redirect(url_for("main.profile"))
+
+    # Change Password
+    if password_form.password_submit.data and password_form.validate_on_submit():
+
+        if not check_password_hash(
+            current_user.password,
+            password_form.current_password.data
+        ):
+
+            flash("Current password is incorrect.", "danger")
+
+            return redirect(url_for("main.profile"))
+
+        current_user.password = generate_password_hash(
+            password_form.new_password.data
+        )
+
+        db.session.commit()
+
+        flash("Password changed successfully!", "success")
+
+        return redirect(url_for("main.profile"))
+
+    if request.method == "GET":
+
+        profile_form.name.data = current_user.name
+        profile_form.contact_number.data = current_user.contact_number
+        profile_form.department.data = current_user.department
+
+    return render_template(
+        "profile/profile.html",
+        profile_form=profile_form,
+        password_form=password_form
+    )
 
 @main.route("/notifications")
 @login_required

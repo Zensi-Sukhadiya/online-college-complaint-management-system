@@ -227,6 +227,25 @@ h6 {
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 
+/* profile pill button */
+.btn-primary-pill {
+    border-radius: var(--blue-pill);
+    border: 2px solid #9283a1;
+    color: var(--blue-color);
+    background: rgba(7, 13, 47, 0.04);
+    font-weight: 700;
+    font-size: 0.88rem;
+    transition: var(--transition-smooth);
+}
+
+.btn-primary-pill:hover {
+    background: var(--primary-color);
+    color: #ffffff;
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(64, 61, 164, 0.2);
+}
+
 /* Responsive: stack login group on mobile */
 @media (max-width: 991px) {
     .navbar-login-group {
