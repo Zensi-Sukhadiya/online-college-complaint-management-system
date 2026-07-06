@@ -20,6 +20,7 @@ Manage Complaints
 <!-- Filters Panel -->
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-body">
+        
         <form method="GET" class="row g-3 align-items-end">
             <div class="col-md-5">
                 <label class="form-label text-muted small text-uppercase">Search</label>
@@ -44,14 +45,34 @@ Manage Complaints
                 </select>
             </div>
 
-            <div class="col-md-3 d-grid">
-                <button type="submit" class="btn btn-primary">
-                    Apply Filter
-                </button>
+            <div class="col-md-3">
+
+                <div class="d-flex gap-2">
+
+                    <button type="submit" class="btn btn-primary flex-fill">
+                        Apply Filter
+                    </button>
+
+                    <a href="{{ url_for('main.export_pdf', status=status) }}"
+                    class="btn btn-danger">
+
+                        <i class="bi bi-file-earmark-pdf"></i>
+
+                    </a>
+                    <a href="{{ url_for('main.export_excel', status=status) }}"
+                    class="btn btn-success">
+                        <i class="bi bi-file-earmark-excel"></i>
+                    </a>
+
+                </div>
+
             </div>
         </form>
+
     </div>
 </div>
+
+
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">

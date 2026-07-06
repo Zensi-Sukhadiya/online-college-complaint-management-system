@@ -4,6 +4,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from .forms import RegisterForm, LoginForm, ComplaintForm, CategoryForm, UpdateStatusForm, CommentForm
 from .models import User, Category, Complaint, ComplaintHistory, Comment, Notification
 from datetime import datetime, timedelta
+from flask import send_file
+from app.utils.report_generator import generate_pdf, generate_excel
 from . import db
 from sqlalchemy import or_
 from sqlalchemy import func
@@ -550,6 +552,62 @@ def admin_complaints():
         status=status
     )
 
+@main.route("/admin/export/pdf")
+@login_required
+def export_pdf():
+
+    if current_user.role != "admin":
+        flash("Access Denied!", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    status = request.args.get("status")
+
+    complaints = Complaint.query
+
+    if status:
+        complaints = complaints.filter_by(status=status)
+
+    complaints = complaints.order_by(
+        Complaint.created_at.desc()
+    ).all()
+
+    pdf = generate_pdf(complaints)
+
+    return send_file(
+        pdf,
+        as_attachment=True,
+        download_name="complaints_report.pdf",
+        mimetype="application/pdf"
+    )
+
+@main.route("/admin/export/excel")
+@login_required
+def export_excel():
+
+    if current_user.role != "admin":
+        flash("Access Denied!", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    status = request.args.get("status")
+
+    complaints = Complaint.query
+
+    if status:
+        complaints = complaints.filter_by(status=status)
+
+    complaints = complaints.order_by(
+        Complaint.created_at.desc()
+    ).all()
+
+    excel = generate_excel(complaints)
+
+    return send_file(
+        excel,
+        as_attachment=True,
+        download_name="complaints_report.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
 @main.route("/admin/complaints/search")
 @login_required
 def complaint_live_search():
@@ -613,6 +671,8 @@ def admin_view_complaint(complaint_id):
         complaint=complaint,
         form=form
     )
+
+
 
 @main.route("/admin/complaint/status/<int:complaint_id>", methods=["GET", "POST"])
 @login_required
