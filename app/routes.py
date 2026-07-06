@@ -3,8 +3,10 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from .forms import RegisterForm, LoginForm, ComplaintForm, CategoryForm, UpdateStatusForm, CommentForm
 from .models import User, Category, Complaint, ComplaintHistory, Comment, Notification
+from datetime import datetime, timedelta
 from . import db
 from sqlalchemy import or_
+from sqlalchemy import func
 from flask import jsonify
 import os
 import uuid
@@ -104,13 +106,60 @@ def dashboard():
         Complaint.created_at.desc()
     ).limit(5).all()
 
+    # Monthly Analytics
+    monthly_data = (
+        db.session.query(
+            func.strftime("%m", Complaint.created_at),
+            func.count(Complaint.id)
+        )
+        .filter(Complaint.student_id == current_user.id)
+        .group_by(func.strftime("%m", Complaint.created_at))
+        .all()
+    )
+
+    month_names = {
+        "01":"Jan","02":"Feb","03":"Mar","04":"Apr",
+        "05":"May","06":"Jun","07":"Jul","08":"Aug",
+        "09":"Sep","10":"Oct","11":"Nov","12":"Dec"
+    }
+
+    months = []
+    monthly_counts = []
+
+    for month, count in monthly_data:
+        months.append(month_names[month])
+        monthly_counts.append(count)
+
+    # Weekly Analytics
+    today = datetime.utcnow()
+
+    weekly_labels = []
+    weekly_values = []
+
+    for i in range(6, -1, -1):
+
+        day = today - timedelta(days=i)
+
+        count = Complaint.query.filter(
+            Complaint.student_id == current_user.id,
+            func.date(Complaint.created_at) == day.date()
+        ).count()
+
+        weekly_labels.append(day.strftime("%a"))
+        weekly_values.append(count)
+
+
     return render_template(
         "dashboard.html",
         total=total,
         pending=pending,
         progress=progress,
         resolved=resolved,
-        complaints=complaints
+        complaints=complaints,
+         months=months,
+        monthly_counts=monthly_counts,
+        weekly_labels=weekly_labels,
+        weekly_values=weekly_values
     )
 
 
@@ -399,6 +448,55 @@ def admin_dashboard():
         Complaint.created_at.desc()
     ).limit(5).all()
 
+    # Monthly Analytics
+    monthly_data = (
+        db.session.query(
+            func.strftime("%m", Complaint.created_at),
+            func.count(Complaint.id)
+        )
+        .group_by(func.strftime("%m", Complaint.created_at))
+        .all()
+    )
+
+    month_names = {
+        "01": "Jan",
+        "02": "Feb",
+        "03": "Mar",
+        "04": "Apr",
+        "05": "May",
+        "06": "Jun",
+        "07": "Jul",
+        "08": "Aug",
+        "09": "Sep",
+        "10": "Oct",
+        "11": "Nov",
+        "12": "Dec",
+    }
+
+    months = []
+    complaints = []
+
+    for month, total in monthly_data:
+        months.append(month_names.get(month))
+        complaints.append(total)
+
+    # Weekly Analytics
+    today = datetime.utcnow()
+
+    weekly_labels = []
+    weekly_values = []
+
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+
+        count = Complaint.query.filter(
+            func.date(Complaint.created_at) == day.date()
+        ).count()
+
+        weekly_labels.append(day.strftime("%a"))
+        weekly_values.append(count)
+
+
     return render_template(
         "admin/admin_dashboard.html",
         total_students=total_students,
@@ -407,7 +505,11 @@ def admin_dashboard():
         pending=pending,
         progress=progress,
         resolved=resolved,
-        recent_complaints=recent_complaints
+        recent_complaints=recent_complaints,
+        months=months,
+        complaints=complaints,
+        weekly_labels=weekly_labels,
+        weekly_values=weekly_values
     )
 
 @main.route("/admin/complaints")
@@ -880,6 +982,13 @@ def notifications():
     ).order_by(
         Notification.created_at.desc()
     ).all()
+
+     # Mark unread notifications as read
+    for notification in notifications:
+        if not notification.is_read:
+            notification.is_read = True
+
+    db.session.commit()
 
     return render_template(
         "notifications.html",

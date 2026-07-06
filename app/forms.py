@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import (StringField, PasswordField, SubmitField, SelectField, TextAreaField)
+from wtforms import (StringField, PasswordField, SubmitField, SelectField, TextAreaField, BooleanField)
 from wtforms.validators import DataRequired, Email, Length, EqualTo
 
 class RegisterForm(FlaskForm):
@@ -152,3 +152,23 @@ class CommentForm(FlaskForm):
     )
 
     submit = SubmitField("Send")
+
+class AnnouncementForm(FlaskForm):
+    title = StringField(
+        "Title",
+        validators=[DataRequired(), Length(max=200)]
+    )
+
+    content = TextAreaField(
+        "Content",
+        validators=[DataRequired()]
+    )
+
+    important = BooleanField("Important")
+
+    published = BooleanField(
+        "Published",
+        default=True
+    )
+
+    submit = SubmitField("Save Announcement")
